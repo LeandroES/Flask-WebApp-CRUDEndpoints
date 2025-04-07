@@ -136,12 +136,3 @@ Esto levantará:
 - `flask_app`: Aplicación Flask.
 - `nginx_proxy`: Servidor Nginx.
 
----
-
-## 🔐 Recomendaciones de Seguridad
-
-- No incluyas credenciales en archivos `.py` en producción.
-- Usa variables de entorno o archivos `.env`.
-- Protege los endpoints con autenticación.
-
----
