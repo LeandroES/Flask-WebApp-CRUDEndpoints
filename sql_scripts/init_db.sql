@@ -1,53 +1,148 @@
-CREATE DATABASE IF NOT EXISTS library_db;
+
+-- CREACIÓN DE BASE DE DATOS
+DROP DATABASE IF EXISTS library_db;
+CREATE DATABASE library_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE library_db;
 
--- Eliminamos tablas si ya existen (opcional para desarrollo)
-DROP TABLE IF EXISTS books;
-DROP TABLE IF EXISTS authors;
+-- TABLA DE USUARIOS PARA AUTENTICACIÓN
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE
+);
 
--- Tabla de Autores
+-- TABLA DE AUTORES
 CREATE TABLE authors (
-  author_id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  country VARCHAR(100),
-  date_of_birth DATE,
-  date_of_death DATE
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    bio TEXT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de Libros
+-- TABLA DE GÉNEROS
+CREATE TABLE genres (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TABLA DE LIBROS
 CREATE TABLE books (
-  book_id INT AUTO_INCREMENT PRIMARY KEY,
-  author_id INT NOT NULL,
-  title VARCHAR(150) NOT NULL,
-  publication_year INT,
-  genre VARCHAR(100),
-  FOREIGN KEY (author_id) REFERENCES authors(author_id)
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    publication_year INT,
+    genre_id INT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (genre_id) REFERENCES genres(id)
 );
 
--- INSERTS en authors
-INSERT INTO authors (name, country, date_of_birth, date_of_death)
-VALUES
-('Gabriel García Márquez', 'Colombia', '1927-03-06', '2014-04-17'),
-('Jorge Luis Borges', 'Argentina', '1899-08-24', '1986-06-14'),
-('Isabel Allende', 'Chile', '1942-08-02', NULL),
-('Mario Vargas Llosa', 'Perú', '1936-03-28', NULL),
-('Carlos Fuentes', 'México', '1928-11-11', '2012-05-15'),
-('Julio Cortázar', 'Argentina', '1914-08-26', '1984-02-12'),
-('Octavio Paz', 'México', '1914-03-31', '1998-04-19'),
-('Pablo Neruda', 'Chile', '1904-07-12', '1973-09-23'),
-('Miguel de Cervantes', 'España', '1547-09-29', '1616-04-22'),
-('Laura Esquivel', 'México', '1950-09-30', NULL);
+-- TABLA INTERMEDIA PARA RELACIÓN MUCHOS A MUCHOS ENTRE AUTORES Y LIBROS
+CREATE TABLE author_book (
+    author_id INT,
+    book_id INT,
+    PRIMARY KEY (author_id, book_id),
+    FOREIGN KEY (author_id) REFERENCES authors(id),
+    FOREIGN KEY (book_id) REFERENCES books(id)
+);
 
--- INSERTS en books
-INSERT INTO books (author_id, title, publication_year, genre)
-VALUES
-(1, 'Cien años de soledad', 1967, 'Realismo mágico'),
-(1, 'El amor en los tiempos del cólera', 1985, 'Realismo mágico'),
-(2, 'El Aleph', 1949, 'Fantasía filosófica'),
-(2, 'Ficciones', 1944, 'Fantasía filosófica'),
-(3, 'La casa de los espíritus', 1982, 'Realismo mágico'),
-(4, 'La ciudad y los perros', 1963, 'Literatura latinoamericana'),
-(5, 'La muerte de Artemio Cruz', 1962, 'Literatura latinoamericana'),
-(6, 'Rayuela', 1963, 'Realismo mágico'),
-(8, 'Veinte poemas de amor y una canción desesperada', 1924, 'Poesía'),
-(9, 'El ingenioso hidalgo Don Quijote de la Mancha', 1605, 'Novela de caballería');
+-- PROCEDIMIENTO: AGREGAR AUTOR
+DELIMITER //
+CREATE PROCEDURE add_author(IN p_name VARCHAR(100), IN p_bio TEXT)
+BEGIN
+    IF EXISTS (SELECT 1 FROM authors WHERE name = p_name AND is_deleted = FALSE) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Author already exists';
+    ELSE
+        INSERT INTO authors(name, bio) VALUES(p_name, p_bio);
+    END IF;
+END;
+//
+
+-- PROCEDIMIENTO: AGREGAR GÉNERO
+CREATE PROCEDURE add_genre(IN p_name VARCHAR(100), IN p_description TEXT)
+BEGIN
+    IF EXISTS (SELECT 1 FROM genres WHERE name = p_name AND is_deleted = FALSE) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Genre already exists';
+    ELSE
+        INSERT INTO genres(name, description) VALUES(p_name, p_description);
+    END IF;
+END;
+//
+
+-- PROCEDIMIENTO: AGREGAR LIBRO
+CREATE PROCEDURE add_book(IN p_title VARCHAR(255), IN p_year INT, IN p_genre_id INT, IN p_author_ids TEXT)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE author_id INT;
+    DECLARE cur CURSOR FOR SELECT CAST(value AS UNSIGNED) FROM JSON_TABLE(CONCAT('[', p_author_ids, ']'), "$[*]" COLUMNS(value VARCHAR(255) PATH "$")) AS jt;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    IF NOT EXISTS (SELECT 1 FROM genres WHERE id = p_genre_id AND is_deleted = FALSE) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Genre does not exist';
+    END IF;
+
+    INSERT INTO books(title, publication_year, genre_id) VALUES(p_title, p_year, p_genre_id);
+    SET @book_id = LAST_INSERT_ID();
+
+    OPEN cur;
+    read_loop: LOOP
+        FETCH cur INTO author_id;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM authors WHERE id = author_id AND is_deleted = FALSE) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'One or more authors do not exist';
+        END IF;
+
+        INSERT INTO author_book(author_id, book_id) VALUES(author_id, @book_id);
+    END LOOP;
+    CLOSE cur;
+END;
+//
+
+-- PROCEDIMIENTO: ELIMINACIÓN LÓGICA
+CREATE PROCEDURE soft_delete_author(IN p_author_id INT)
+BEGIN
+    UPDATE authors SET is_deleted = TRUE WHERE id = p_author_id;
+END;
+//
+
+CREATE PROCEDURE soft_delete_book(IN p_book_id INT)
+BEGIN
+    UPDATE books SET is_deleted = TRUE WHERE id = p_book_id;
+END;
+//
+
+CREATE PROCEDURE soft_delete_genre(IN p_genre_id INT)
+BEGIN
+    UPDATE genres SET is_deleted = TRUE WHERE id = p_genre_id;
+END;
+//
+
+-- PROCEDIMIENTO: LISTAR LIBROS DE UN AUTOR
+CREATE PROCEDURE get_books_by_author(IN p_author_id INT)
+BEGIN
+    SELECT b.id, b.title, b.publication_year, g.name AS genre
+    FROM books b
+    JOIN genres g ON b.genre_id = g.id
+    JOIN author_book ab ON b.id = ab.book_id
+    WHERE ab.author_id = p_author_id AND b.is_deleted = FALSE;
+END;
+//
+
+-- PROCEDIMIENTO: LISTAR AUTORES DE UN LIBRO
+CREATE PROCEDURE get_authors_by_book(IN p_book_id INT)
+BEGIN
+    SELECT a.id, a.name, a.bio
+    FROM authors a
+    JOIN author_book ab ON a.id = ab.author_id
+    WHERE ab.book_id = p_book_id AND a.is_deleted = FALSE;
+END;
+//
+DELIMITER ;

@@ -1,0 +1,84 @@
+-- INSERTS PARA AUTORES
+CALL add_author('Gabriel García Márquez', 'Bio de Gabriel García Márquez', '1951-01-01');
+CALL add_author('Jane Austen', 'Bio de Jane Austen', '1952-01-01');
+CALL add_author('J.K. Rowling', 'Bio de J.K. Rowling', '1953-01-01');
+CALL add_author('George Orwell', 'Bio de George Orwell', '1954-01-01');
+CALL add_author('Ernest Hemingway', 'Bio de Ernest Hemingway', '1955-01-01');
+CALL add_author('Franz Kafka', 'Bio de Franz Kafka', '1956-01-01');
+CALL add_author('Leo Tolstoy', 'Bio de Leo Tolstoy', '1957-01-01');
+CALL add_author('F. Scott Fitzgerald', 'Bio de F. Scott Fitzgerald', '1958-01-01');
+CALL add_author('Isabel Allende', 'Bio de Isabel Allende', '1959-01-01');
+CALL add_author('Haruki Murakami', 'Bio de Haruki Murakami', '1960-01-01');
+
+-- INSERTS PARA GÉNEROS
+CALL add_genre('Romance', 'Descripción del género Romance');
+CALL add_genre('Ciencia Ficción', 'Descripción del género Ciencia Ficción');
+CALL add_genre('Fantasía', 'Descripción del género Fantasía');
+CALL add_genre('Aventura', 'Descripción del género Aventura');
+CALL add_genre('Ficción experimental', 'Descripción del género Ficción experimental');
+CALL add_genre('Misterio', 'Descripción del género Misterio');
+CALL add_genre('Ficción filosófica', 'Descripción del género Ficción filosófica');
+CALL add_genre('Histórica', 'Descripción del género Histórica');
+CALL add_genre('Realismo mágico', 'Descripción del género Realismo mágico');
+CALL add_genre('Contemporáneo', 'Descripción del género Contemporáneo');
+CALL add_genre('Psicológica', 'Descripción del género Psicológica');
+CALL add_genre('Drama legal', 'Descripción del género Drama legal');
+CALL add_genre('Sátira política', 'Descripción del género Sátira política');
+CALL add_genre('Ficción alegórica', 'Descripción del género Ficción alegórica');
+CALL add_genre('Drama', 'Descripción del género Drama');
+
+-- INSERTS PARA LIBROS
+CALL add_book('Cien Años de Soledad', 'Descripción de Cien Años de Soledad', '2001-11-04', 9);
+CALL add_book('Orgullo y Prejuicio', 'Descripción de Orgullo y Prejuicio', '2002-02-10', 1);
+CALL add_book('Harry Potter y la Piedra Filosofal', 'Descripción de Harry Potter y la Piedra Filosofal', '2003-11-22', 3);
+CALL add_book('1984', 'Descripción de 1984', '2004-05-19', 2);
+CALL add_book('El viejo y el mar', 'Descripción de El viejo y el mar', '2005-08-12', 4);
+CALL add_book('La Metamorfosis', 'Descripción de La Metamorfosis', '2006-10-06', 7);
+CALL add_book('Guerra y Paz', 'Descripción de Guerra y Paz', '2007-09-18', 8);
+CALL add_book('El Gran Gatsby', 'Descripción de El Gran Gatsby', '2008-07-27', 15);
+CALL add_book('La Casa de los Espíritus', 'Descripción de La Casa de los Espíritus', '2009-10-26', 9);
+CALL add_book('Tokio Blues', 'Descripción de Tokio Blues', '2010-01-10', 10);
+CALL add_book('Harry Potter y la Cámara Secreta', 'Descripción de Harry Potter y la Cámara Secreta', '2011-03-07', 3);
+CALL add_book('Ensayo sobre la ceguera', 'Descripción de Ensayo sobre la ceguera', '2012-12-12', 14);
+CALL add_book('El amor en los tiempos del cólera', 'Descripción de El amor en los tiempos del cólera', '2013-12-10', 1);
+CALL add_book('Crónica de una muerte anunciada', 'Descripción de Crónica de una muerte anunciada', '2014-04-23', 6);
+CALL add_book('Kafka en la orilla', 'Descripción de Kafka en la orilla', '2015-05-16', 3);
+CALL add_book('Los juegos del hambre', 'Descripción de Los juegos del hambre', '2016-06-15', 2);
+CALL add_book('Matar a un ruiseñor', 'Descripción de Matar a un ruiseñor', '2017-11-03', 12);
+CALL add_book('Rebelión en la granja', 'Descripción de Rebelión en la granja', '2018-07-21', 13);
+CALL add_book('Rayuela', 'Descripción de Rayuela', '2019-08-17', 5);
+CALL add_book('Crimen y castigo', 'Descripción de Crimen y castigo', '2000-08-10', 11);
+
+-- RELACIONES ENTRE AUTORES Y LIBROS
+CALL add_book_author(1, 6);
+CALL add_book_author(1, 3);
+CALL add_book_author(2, 5);
+CALL add_book_author(2, 3);
+CALL add_book_author(3, 4);
+CALL add_book_author(3, 3);
+CALL add_book_author(4, 3);
+CALL add_book_author(5, 10);
+CALL add_book_author(6, 1);
+CALL add_book_author(6, 4);
+CALL add_book_author(7, 1);
+CALL add_book_author(8, 3);
+CALL add_book_author(8, 5);
+CALL add_book_author(9, 8);
+CALL add_book_author(10, 10);
+CALL add_book_author(10, 1);
+CALL add_book_author(11, 5);
+CALL add_book_author(11, 3);
+CALL add_book_author(12, 9);
+CALL add_book_author(13, 8);
+CALL add_book_author(13, 1);
+CALL add_book_author(14, 3);
+CALL add_book_author(14, 5);
+CALL add_book_author(15, 10);
+CALL add_book_author(16, 3);
+CALL add_book_author(16, 9);
+CALL add_book_author(17, 2);
+CALL add_book_author(17, 6);
+CALL add_book_author(18, 3);
+CALL add_book_author(18, 5);
+CALL add_book_author(19, 5);
+CALL add_book_author(20, 6);
