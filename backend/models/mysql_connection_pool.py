@@ -21,7 +21,7 @@ class MySQLPool(object):
     """
 
     def __init__(self):
-        self.pool = self.create_pool(pool_name='task_pool', pool_size=30)
+        self.pool = self.create_pool(pool_name='task_pool', pool_size=32)
 
     def create_pool(self, pool_name, pool_size):
         """

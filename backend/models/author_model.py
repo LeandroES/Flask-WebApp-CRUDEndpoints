@@ -34,21 +34,22 @@ class AuthorModel:
             'date_of_death': date_of_death
         }
         query = """insert into authors (name, country, date_of_birth, date_of_death) 
-            values (%(name)s, %(country)s, %(date_of_birth)s, %(date_of_death)s, %(date_of_birth)s)"""
+            values (%(name)s, %(country)s, %(date_of_birth)s, %(date_of_death)s)"""
         cursor = self.mysql_pool.execute(query, data, commit=True)
 
         data['author_id'] = cursor.lastrowid
         return data
 
-    def update_author(self, name, country, date_of_birth, date_of_death):
+    def update_author(self, author_id, name, country, date_of_birth, date_of_death):
         data = {
+            'author_id' : author_id,
             'name' : name,
             'country' : country,
             'date_of_birth': date_of_birth,
             'date_of_death': date_of_death
         }
         query = """update authors set name = %(name)s, country = %(country)s,
-                    date_of_birth= %(date_of_birth)s, date_of_death where author_id = %(author_id)s"""
+                    date_of_birth= %(date_of_birth)s, date_of_death = %(date_of_death)s where author_id = %(author_id)s"""
         cursor = self.mysql_pool.execute(query, data, commit=True)
 
         result = {'result':1}
